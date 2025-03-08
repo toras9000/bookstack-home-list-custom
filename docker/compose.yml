@@ -1,0 +1,80 @@
+name: sample-bookstack-home-list-custom
+
+volumes:
+  bookstack-db-data:
+  bookstack-app-data:
+
+services:
+  db:
+    # (windows + docker desktop + wsl2 + mariadb + bookstack) is initial migration failed.
+    # mysql is used as an alternative for samples.
+    image: mysql:8
+    restart: unless-stopped
+    networks:
+      default:
+        aliases:
+          - bookstack-db-container
+    healthcheck:
+      test: mysqladmin ping --host=localhost --user=$${MYSQL_USER} || exit 1
+      start_period: 180s
+      start_interval: 5s
+      timeout: 5s
+      interval: 300s
+      retries: 3
+    volumes:
+      - type: volume
+        source: bookstack-db-data
+        target: /var/lib/mysql
+    environment:
+      - TZ=Asia/Tokyo
+      - MYSQL_ROOT_PASSWORD=bookstack_rootpass
+      - MYSQL_DATABASE=bookstack_store
+      - MYSQL_USER=bookstack_user
+      - MYSQL_PASSWORD=bookstack_pass
+
+  app:
+    image: lscr.io/linuxserver/bookstack:version-v25.02
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      default:
+        aliases:
+          - bookstack-app-container
+    healthcheck:
+      test: curl -f -s http://localhost:80 || exit 1
+      start_period: 300s
+      start_interval: 3s
+      timeout: 5s
+      interval: 300s
+      retries: 3
+    ports:
+      - "9903:80"
+    volumes:
+      - type: bind
+        source: ./assets/init
+        target: /custom-cont-init.d
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./assets/template
+        target: /assets/template
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: volume
+        source: bookstack-app-data
+        target: /config
+    environment:
+      - TZ=Asia/Tokyo
+      - PUID=1000
+      - PGID=1000
+      - APP_URL=http://localhost:9903
+      - APP_KEY=base64:EE9OBef6jsw7268M+LLMJKvkZ9R9gXhIqwIdwdIzJ2I=
+      - DB_HOST=bookstack-db-container
+      - DB_DATABASE=bookstack_store
+      - DB_USERNAME=bookstack_user
+      - DB_PASSWORD=bookstack_pass
+      - APP_THEME=my-theme
