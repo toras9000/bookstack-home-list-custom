@@ -3,7 +3,7 @@
     <div class="activity-list">
         @foreach($activity as $activityItem)
             <div class="activity-list-item">
-                @include('common.activity-item', ['activity' => $activityItem])
+                @include('common.activity-item', ['activity' => $activityItem, 'context' => $context ?? ''])
             </div>
         @endforeach
     </div>
