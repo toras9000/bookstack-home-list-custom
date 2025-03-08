@@ -20,7 +20,7 @@
                     <div id="recent-drafts" class="card mb-xl">
                         <h3 class="card-title">{{ trans('entities.my_recent_drafts') }}</h3>
                         <div class="px-m">
-                            @include('entities.list', ['entities' => $draftPages, 'style' => 'compact'])
+                            @include('entities.list', ['entities' => $draftPages, 'style' => 'compact', 'context' => 'home'])
                         </div>
                     </div>
                 @endif
@@ -31,6 +31,7 @@
                         @include('entities.list', [
                         'entities' => $recents,
                         'style' => 'compact',
+                        'context' => 'home',
                         'emptyText' => auth()->check() ? trans('entities.no_pages_viewed') : trans('entities.books_empty')
                         ])
                     </div>
@@ -45,6 +46,7 @@
                             @include('entities.list', [
                             'entities' => $favourites,
                             'style' => 'compact',
+                            'context' => 'home',
                             ])
                         </div>
                         <a href="{{ url('/favourites')  }}" class="card-footer-link">{{ trans('common.view_all') }}</a>
@@ -57,6 +59,7 @@
                         @include('entities.list', [
                         'entities' => $recentlyUpdatedPages,
                         'style' => 'compact',
+                        'context' => 'home',
                         'emptyText' => trans('entities.no_pages_recently_updated'),
                         ])
                     </div>
@@ -70,7 +73,7 @@
                 <div id="recent-activity" class="card mb-xl">
                     <h3 class="card-title">{{ trans('entities.recent_activity') }}</h3>
                     <div class="px-m">
-                        @include('common.activity-list', ['activity' => $activity])
+                        @include('common.activity-list', ['activity' => $activity, 'context' => 'home'])
                     </div>
                 </div>
             </div>
