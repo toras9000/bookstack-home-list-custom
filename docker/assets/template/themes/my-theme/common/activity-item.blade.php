@@ -42,5 +42,5 @@
         @endif
     </div>
 
-    <span class="text-muted"><small>@icon('time'){{ $activity->created_at->diffForHumans() }}</small></span>
+    <span class="text-muted" title="{{ $dates->absolute($activity->created_at) }}"><small>@icon('time'){{ $dates->relative($activity->created_at) }}</small></span>
 </div>

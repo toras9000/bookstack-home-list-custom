@@ -1,0 +1,73 @@
+#!/usr/bin/env -S dotnet run --file
+#:package MySqlConnector@2.5.0
+#:package Dapper@2.1.66
+#:package BCrypt.Net-Next@4.0.3
+#:package Lestaly.General@0.114.0
+#:property PublishAot=false
+using Dapper;
+using Lestaly;
+using Lestaly.Cx;
+using MySqlConnector;
+
+return await Paved.ProceedAsync(noPause: args.RoughContains("--no-pause"), async () =>
+{
+    Console.WriteLine("Detect db service port ...");
+    var composeFile = ThisSource.RelativeFile("./docker/compose.yml");
+    var pubPort = await "docker".args("compose", "--file", composeFile, "port", "db", "3306").silent().result().success().output(trim: true);
+    var dbPort = pubPort.AsSpan().SkipToken(':').ParseNumber<ushort>();
+
+    Console.WriteLine("Prepare db connection ...");
+    var config = new MySqlConnectionStringBuilder();
+    config.Server = "localhost";
+    config.Port = dbPort;
+    config.UserID = "bookstack_user";
+    config.Password = "bookstack_pass";
+    config.Database = "bookstack_store";
+    using var mysql = new MySqlConnection(config.ConnectionString);
+    await mysql.OpenAsync();
+
+    var tokenUser = "Admin";
+    var tokenName = "TestToken";
+    var tokenId = "00001111222233334444555566667777";
+    var tokenSecret = "88889999aaaabbbbccccddddeeeeffff";
+
+    Console.WriteLine("Get user id ...");
+    var tokenUserId = await mysql.ExecuteScalarAsync<uint?>(
+        sql: "select id from users where name = @user",
+        param: new { user = tokenUser }
+    ) ?? throw new Exception($"User '{tokenUser}' not found");
+    Console.WriteLine($".. User: {tokenUser} [{tokenUserId}]");
+
+    Console.WriteLine("Check token id ...");
+    var existingTokens = await mysql.QueryAsync(
+        sql: "select user_id, token_id from api_tokens where user_id = @user_id or token_id = @token_id",
+        param: new { user_id = tokenUserId, token_id = tokenId, },
+        map: (uint user_id, string token_id) => new { user_id, token_id, },
+        splitOn: "*"
+    );
+    if (existingTokens.Any(t => t.token_id == tokenId))
+    {
+        var satisfy = existingTokens.Any(t => t.token_id == tokenId && t.user_id == tokenUserId);
+        if (!satisfy) throw new Exception("Duplicate token ID for other user");
+        Console.WriteLine(".. Already exists");
+        return;
+    }
+    Console.WriteLine(".. Not exists");
+
+    Console.WriteLine("Create api token ...");
+    var hashSalt = BCrypt.Net.BCrypt.GenerateSalt(12, 'y');
+    var secretHash = BCrypt.Net.BCrypt.HashPassword(tokenSecret, hashSalt);
+    var tokenParam = new
+    {
+        name = tokenName,
+        user_id = tokenUserId,
+        token_id = tokenId,
+        secret = secretHash,
+        expires_at = DateTime.Now.AddYears(100),
+    };
+    await mysql.ExecuteAsync(
+        sql: "insert into api_tokens (name, user_id, token_id, secret, expires_at) values (@name, @user_id, @token_id, @secret, @expires_at)",
+        param: tokenParam
+    );
+    Console.WriteLine(".. Token created");
+});

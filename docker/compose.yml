@@ -14,6 +14,8 @@ services:
       default:
         aliases:
           - bookstack-db-container
+    ports:
+      - "9906:3306"
     healthcheck:
       test: mysqladmin ping --host=localhost --user=$${MYSQL_USER} || exit 1
       start_period: 180s
@@ -33,7 +35,7 @@ services:
       - MYSQL_PASSWORD=bookstack_pass
 
   app:
-    image: lscr.io/linuxserver/bookstack:version-v25.02
+    image: lscr.io/linuxserver/bookstack:version-v25.12.1
     restart: unless-stopped
     depends_on:
       db:

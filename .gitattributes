@@ -3,6 +3,8 @@
 *.bat           text eol=crlf
 *.sh            text eol=lf
 *.csx           text
+*.cs1           text
+*.cs            text
 *.txt           text
 *.yml           text eol=lf
 Dockerfile      text eol=lf

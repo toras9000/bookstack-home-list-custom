@@ -1,0 +1,10 @@
+#!/usr/bin/env -S dotnet run --file
+#:package Lestaly@0.114.0
+using Lestaly;
+using Lestaly.Cx;
+
+var composeFile = ThisSource.RelativeFile("./docker/compose.yml");
+var pubPort = await "docker".args("compose", "--file", composeFile, "port", "app", "80").silent().result().success().output();
+var portNum = pubPort.AsSpan().SkipToken(':').TryParseNumber<ushort>();
+var service = new Uri($"http://localhost:{portNum}");
+await CmdShell.ExecAsync(service.AbsoluteUri);
