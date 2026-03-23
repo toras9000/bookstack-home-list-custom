@@ -29,7 +29,7 @@
     @endif
 
     <div style="font-size: 9pt;">
-        @if($activity->loggable && $context == 'home')
+        @hasSection('list_custom_show_path')
             @php
                 if ($activity->loggable->isA('page')) $activity->loggable->loadMissing('book', 'chapter');
             @endphp

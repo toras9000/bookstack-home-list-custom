@@ -1,18 +1,18 @@
 @component('entities.list-item-basic', ['entity' => $entity, 'classes' => (($locked ?? false) ? 'disabled ' : '') . ($classes ?? '') ])
 
+@hasSection('list_custom_show_path')
 <div style="font-size: 9pt;">
-    @if (!$showPath && $context == 'home')
-        @php
-            if ($entity->isA('page')) $entity->loadMissing('book', 'chapter');
-        @endphp
-        @if($entity->relationLoaded('book') && $entity->book)
-            <span class="text-book">{{ $entity->book->getShortName(42) }}</span>
-            @if($entity->relationLoaded('chapter') && $entity->chapter)
-                <span class="text-muted entity-list-item-path-sep">@icon('chevron-right')</span> <span class="text-chapter">{{ $entity->chapter->getShortName(42) }}</span>
-            @endif
+    @php
+        if ($entity->isA('page')) $entity->loadMissing('book', 'chapter');
+    @endphp
+    @if($entity->relationLoaded('book') && $entity->book)
+        <span class="text-book">{{ $entity->book->getShortName(42) }}</span>
+        @if($entity->relationLoaded('chapter') && $entity->chapter)
+            <span class="text-muted entity-list-item-path-sep">@icon('chevron-right')</span> <span class="text-chapter">{{ $entity->chapter->getShortName(42) }}</span>
         @endif
     @endif
 </div>
+@endif
 
 <div class="entity-item-snippet">
 
