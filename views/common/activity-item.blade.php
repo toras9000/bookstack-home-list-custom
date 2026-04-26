@@ -24,7 +24,25 @@
         "{{ $activity->loggable->name }}"
     @endif
 
-    <br>
+    @if(!$activity->loggable)
+        {{ $activity->detail }}
+    @endif
+
+    <div style="font-size: 9pt;">
+        @hasSection('list_custom_show_path')
+            @if($activity->loggable)
+                @php
+                    if ($activity->loggable->isA('page')) $activity->loggable->loadMissing('book', 'chapter');
+                @endphp
+                @if($activity->loggable->relationLoaded('book') && $activity->loggable->book)
+                    <span class="text-book">{{ $activity->loggable->book->getShortName(42) }}</span>
+                    @if($activity->loggable->relationLoaded('chapter') && $activity->loggable->chapter)
+                        <span class="text-muted entity-list-item-path-sep">@icon('chevron-right')</span> <span class="text-chapter">{{ $activity->loggable->chapter->getShortName(42) }}</span>
+                    @endif
+                @endif
+            @endif
+        @endif
+    </div>
 
     <span class="text-muted" title="{{ $dates->absolute($activity->created_at) }}"><small>@icon('time'){{ $dates->relative($activity->created_at) }}</small></span>
 </div>
