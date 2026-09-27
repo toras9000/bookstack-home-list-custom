@@ -1,5 +1,7 @@
 @extends('layouts.simple')
 
+@section('list_custom_show_path', 'dummy-value')
+
 @section('body')
 
     <div class="container px-xl py-s flex-container-row gap-l wrap justify-space-between">
